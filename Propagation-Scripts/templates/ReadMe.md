@@ -8,4 +8,4 @@ Click on the name of the template that interests you for more details.
 
 | Template name                        | Description                                                                                                                       |
 |--------------------------------------|:----------------------------------------------------------------------------------------------------------------------------------|
-| [Azure KeyVault](./AzureKeyVault.md) | A template for propagating the password of a privileged account after its rotation to a corresponding account on Azure KeyVault.  |
+| [Azure KeyVault](./AzureKeyVault/Readme.md) | A template for propagating the password of a privileged account after its rotation to a corresponding account on Azure KeyVault.  |
