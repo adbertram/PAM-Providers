@@ -1,0 +1,34 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PreventPrivilegeEscalation",
+            "Effect": "Deny",
+            "Action": [
+                "iam:Create*",
+                "iam:Delete*",
+                "iam:Update*",
+                "iam:Attach*",
+                "iam:Detach*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ListIAMUsers",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListUsers",
+                "iam:GetUser"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ChangeIAMUserPasswords",
+            "Effect": "Allow",
+            "Action": [
+                "iam:UpdateLoginProfile"
+            ],
+            "Resource": "arn:aws:iam::*:user/*"
+        }
+    ]
+}
