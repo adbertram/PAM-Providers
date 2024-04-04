@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "PreventPrivilegeEscalation",
+            "Effect": "Deny",
+            "Action": [
+                "iam:Create*",
+                "iam:Delete*",
+                "iam:Attach*",
+                "iam:Detach*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "ListIAMAccessKeys",
+            "Effect": "Allow",
+            "Action": [
+                "iam:ListAccesKeys"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
