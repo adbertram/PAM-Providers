@@ -13,10 +13,11 @@
             "Resource": "*"
         },
         {
-            "Sid": "ListIAMAccessKeys",
+            "Sid": "ListEntities",
             "Effect": "Allow",
             "Action": [
-                "iam:ListAccesKeys"
+                "iam:ListAccessKeys",
+                "iam:ListUsers"
             ],
             "Resource": "*"
         }

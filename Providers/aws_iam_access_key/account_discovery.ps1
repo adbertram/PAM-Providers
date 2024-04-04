@@ -20,7 +20,11 @@ param (
 
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [securestring]$ProviderIAMSecretAccessKey
+    [securestring]$ProviderIAMSecretAccessKey,
+
+    [Parameter()]
+    [ValidateSet('Active','Inactive')]
+    [string]$Status
 )
 
 $ErrorActionPreference = 'Stop'
@@ -69,23 +73,14 @@ $roleAuthSetCredParams = @{
 Set-AWSCredential @roleAuthSetCredParams
 #endregion
 
-
-
-
-## TODO: should temporary access keys and long-terms keys be treated the same in this provider?
-## You cannot get the secret key. need to figure out a way to get an access denied by forcing an action
-
-## Using Parallel because running Get-IAMUser is pretty slow
 Get-IAMUserList | ForEach-Object -ThrottleLimit 10 -Parallel {
 
-    $creds = $using:credentials
-    $userName = $_.UserName
+    $StoredAWSCredentials = $using:StoredAWSCredentials
 
-    try {
-        
-        Get-IAMAccessKey -UserName $userName
-    
-    } catch [Amazon.IdentityManagement.Model.NoSuchEntityException] {
-        Write-Output -InputObject "No login profile found for IAM user [$userName]."
+    $whereFilter = {'*'}
+    if ($using:Status) {
+        $whereFilter = { $_.Status -eq $using:Status }
     }
+    Get-IAMAccessKey -UserName $_.UserName | Where-Object -FilterScript $whereFilter
+    
 }

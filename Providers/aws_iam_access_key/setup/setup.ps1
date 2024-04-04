@@ -173,8 +173,10 @@ try {
 
 #region Return all of the necessary attributes to use in the other provider scripts
 [pscustomobject]@{
-    UserAccessKeyId = $iamAccessKey.AccessKeyId
-    UserSecretKey   = $iamAccessKey.SecretAccessKey
-    RoleArn         = $iamRole.Arn
+    UserAccessKeyId     = $iamAccessKey.AccessKeyId
+    UserSecretAccessKey = $iamAccessKey.SecretAccessKey
+    RoleArn             = $iamRole.Arn
 }
+
+Write-Host 'Document these values as you will need them to use the AnyIdentity provider in DVLS!' -ForegroundColor Red
 #endregion
