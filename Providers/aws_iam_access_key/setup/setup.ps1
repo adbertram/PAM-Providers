@@ -1,5 +1,50 @@
 #requires -Modules @{ModuleName='AWS.Tools.IdentityManagement';ModuleVersion='4.1.540'}
 
+<#
+.SYNOPSIS
+Sets up the AWS IAM environment for Devolutions AnyIdentity provider, including IAM user, access key, and role with specific permissions.
+
+.DESCRIPTION
+This script prepares the AWS IAM environment required for the Devolutions AnyIdentity provider. It creates an IAM user, 
+generates an access key, establishes IAM roles, and attaches necessary policies for managing AWS IAM access keys. The 
+setup ensures proper permissions are in place for secure AnyIdentity provider operations.
+
+.PARAMETER ProviderRegion
+Specifies the AWS region where the IAM user and role will be created.
+
+.PARAMETER ProviderIAMAccessKey
+The AWS access key used for authentication. This should have the necessary permissions to create users, roles, and policies.
+
+.PARAMETER ProviderIAMSecretAccessKey
+The AWS secret access key corresponding to the ProviderIAMAccessKey.
+
+.PARAMETER AnyIdentityIAMUserName
+(Optional) The name of the IAM user to be created. Defaults to 'devolutions_anyidentity_provider_iam_access_key'.
+
+.PARAMETER AnyIdentityIAMRoleName
+(Optional) The name of the IAM role to be created. Defaults to 'IAMChangeAllAccessKeys'.
+
+.PARAMETER PermissionBoundaryPolicyName
+(Optional) The name of the permission boundary policy to be attached to the IAM user. Defaults to 'IAMChangeIAMAccessKeysPermissionBoundary'.
+
+.PARAMETER RolePermissionPolicyName
+(Optional) The name of the permission policy to be attached to the IAM role. Defaults to 'IAMChangeIAMAccessKeysRole'.
+
+.PARAMETER UserPermissionPolicyName
+(Optional) The name of the user permission policy. Defaults to 'IAMChangeIAMAccessKeysUserPolicy'.
+
+.EXAMPLE
+PS> .\setup.ps1 -ProviderRegion 'us-east-1' -ProviderIAMAccessKey 'AKIA...' -ProviderIAMSecretAccessKey (ConvertTo-SecureString 'yourSecretKey' -AsPlainText -Force)
+
+Executes the setup script with the specified AWS region, IAM access key, and secret access key. This example demonstrates
+the complete setup process, including the creation of the IAM user, role, and necessary policies.
+
+.NOTES
+This script requires AWS PowerShell modules: AWS.Tools.IdentityManagement, AWS.Tools.SecurityToken, and AWS.Tools.Common.
+Ensure these are installed and available before running the script.
+
+#>
+
 [CmdletBinding()]
 param (
     [Parameter(Mandatory)]
