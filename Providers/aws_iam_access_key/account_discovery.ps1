@@ -71,6 +71,8 @@ $roleAuthSetCredParams = @{
     SessionToken = $credentials.Credentials.SessionToken
 }
 Set-AWSCredential @roleAuthSetCredParams
+
+Set-DefaultAWSRegion -Scope 'Private' -Region $ProviderRegion
 #endregion
 
 Get-IAMUserList | ForEach-Object -ThrottleLimit 10 -Parallel {
