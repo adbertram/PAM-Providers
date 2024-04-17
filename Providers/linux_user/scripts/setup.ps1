@@ -16,11 +16,7 @@ param(
 
     [Parameter(Mandatory)]
     [ValidateNotNullOrEmpty()]
-    [string]$LinuxHostUserName,
-
-    [Parameter(Mandatory)]
-    [ValidateNotNullOrEmpty()]
-    [securestring]$LinuxHostPassword
+    [string]$LinuxHostUserName
 )
 
 #region Test for and install the OpenSSH client if it doesn't exist on the local machine
@@ -34,46 +30,56 @@ try {
     
     $sshKeyName = 'dvls-linux-user'
     $sshKeyPath = (Join-Path -Path $PSScriptRoot -ChildPath $sshKeyName)
-    $sshKeyAlgo = 'ed25519'
-    ## https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement
-    Start-Process 'ssh-keygen' -ArgumentList "-f `"$sshKeyPath`" -t $sshKeyAlgo -N `"`"" -NoNewWindow -Wait
+    # $sshKeyAlgo = 'ed25519'
+    # ## https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_keymanagement
+    # $null = Start-Process 'ssh-keygen' -ArgumentList "-f `"$sshKeyPath`" -t $sshKeyAlgo -N `"`"" -NoNewWindow -Wait
     
     #endregion
     
     #region Copy the public key to the remote Linux host and private key to the DVLS server
+    ## This could be better using keys
     
     ## public key
-    $publicKeyContents = Get-Content -Path "$sshKeyPath.pub"
-    ssh $LinuxHostUserName@$LinuxHostName "echo '$publicKeyContents' >> ~/.ssh/authorized_keys"
+    # $publicKeyContents = Get-Content -Path "$sshKeyPath.pub"
+    # Write-Host 'Provide the Linux host user password to copy the public key to.'
+    # ssh $LinuxHostUserName@$LinuxHostName "echo '$publicKeyContents' >> ~/.ssh/authorized_keys"
     
     ## private key
     $psSession = New-PSSession -ComputerName $DvlsServerHostName -Credential $DvlServerCredential
     Copy-Item -ToSession $psSession -Path $sshKeyPath -Destination 'C:\'
     #endregion
 
-    #region Protect the remote private key by...
+    # #region Protect the private key on the DVLS server by adding it to the SSH agent
     
     Invoke-Command -Session $psSession -ScriptBlock {
+        
+        # Explicitly reset permissions, remove all inherited permissions, and grant read access to only the specified user
 
-        icacls $using:sshKeyPath /inheritance:r
-        icacls $using:sshKeyPath /grant:r "NT AUTHORITY\NETWORK SERVICE:(R)"
+        TakeOwn /F $using:sshKeyPath
+        # icacls $using:sshKeyPath /reset
+        # icacls $using:sshKeyPath /inheritance:r
+        # icacls $using:sshKeyPath /remove:g "Authenticated Users"
+        # icacls $using:sshKeyPath /remove:g "Users"
+        # icacls $using:sshKeyPath /grant:r "$($env:USERNAME):(R)"
+    
+        # Check the permissions after setting
+        # icacls $using:sshKeyPath
+    
+        # # Attempt to start and communicate with the SSH agent
+        # Set-Service -Name "ssh-agent" -StartupType Manual
+        # Start-Service ssh-agent
+        # ssh-add $using:sshKeyPath
+    }
+    
+    
 
-        Set-Service -Name "ssh-agent" -StartupType Manual
-        Start-Service ssh-agent
-        ssh-add $using:sshKeyPath
-    
-    } -Credential $DvlServerCredential
-
-    $psSession | Remove-PSSession
-    #endregion
-    
-    
-    
-    # Connect to the Linux host via SSH using the private key from the Windows Certificate Store
-    ssh -i cert://$($cert.Thumbprint) $linuxUsername@$linuxHostIp
-    #endregion
+    # #endregion
 } catch {
-    $PSCmdlet.ThrowTerminatingError($_)
+    throw $_
 } finally {
-    Remove-Item -Path "$sshKeyPath\*" -Recurse
+    ## Remove the private and public key from the local machine
+    Remove-Item -Path "$sshKeyPath`*" 
+
+    ## Close the session
+    $psSession | Remove-PSSession
 }
