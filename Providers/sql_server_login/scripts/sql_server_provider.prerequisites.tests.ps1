@@ -76,11 +76,6 @@ function runPwshAs([pscredential]$Credential, [scriptblock]$Code) {
 
     $credDomain = $Credential.GetNetworkCredential().Domain
 
-    $processInfo.UserName = $cred.GetNetworkCredential().UserName
-    $processInfo.Password = $cred.Password
-
-    $credDomain = $cred.GetNetworkCredential().Domain
-
     if ($credDomain) {
         $processInfo.Domain = $credDomain
     } else {
