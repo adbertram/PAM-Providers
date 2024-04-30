@@ -52,11 +52,52 @@ The `password_rotation.ps1` script manages the rotation of SQL Server login pass
 | `SqlCredential`      | The PSCredential object for SQL authentication. | No    | `$(Get-Credential)`   |
 | `NewPassword`        | The new password for the SQL login.         | Yes       | `"NewP@ssw0rd!"`      |
 
-
 ## Troubleshooting
 
 - If the account discovery script does not return all expected accounts, verify that the SQL Server instance is accessible and that you have the necessary permissions.
 - If password rotation fails, check for password complexity requirements or lockout policies that might be preventing the change.
+
+If you need to troubleshoot the provider or are simply interested in seeing how the PowerShell scripts work under the hood, you can see an example on how to run the code below on a local SQL server instance.
+
+```powershell
+## Replace all instances of @sqlAuthCommonProviderParams with @windowsAuthCommonProviderParams if testing Windows Authentication
+$sqlAuthCommonProviderParams = @{
+    Server = 'localhost'
+    ## Instance = ''
+    ProviderSqlLoginUserName = '<username>'
+    ProviderSqlLoginPassword = (Convertto-SecureString -String '<password>' -AsPlainText -Force)
+    ## Port = 1433
+}
+
+## Uses the logged in Windows account to access the database
+$windowsAuthCommonProviderParams = @{
+    Server = 'localhost'
+    ## Instance = ''
+    ## Port = 1433
+}
+
+$accounts = .\account_discovery.ps1 @sqlAuthCommonProviderParams
+$accountPwHashBefore = $accounts[4].secret
+
+## SQL Server Login Heartbeat
+## should return True because nothing changed
+.\heartbeat.ps1 @sqlAuthCommonProviderParams -Secret $accountPwHashBefore -UserName $accounts[4].UserName
+
+## SQL Server Login Password Rotation
+## should return True
+$someNewPassword = (Convertto-SecureString -String 'NewP@$$w0rd!!' -AsPlainText -Force)
+.\password_rotation.ps1 @sqlAuthCommonProviderParams -UserName $accounts[4].UserName -NewPassword $someNewPassword
+
+## Get the password hash now
+$accounts = .\account_discovery.ps1 @sqlAuthCommonProviderParams
+$accountPwHashAfter = $accounts[4].secret
+
+## should return False because password changed and using old password
+.\heartbeat.ps1 @sqlAuthCommonProviderParams -Secret $accountPwHashBefore -UserName $accounts[4].UserName
+
+## should return True because password changed and using new password
+.\heartbeat.ps1 @sqlAuthCommonProviderParams -Secret $accountPwHashAfter -UserName $accounts[4].UserName
+```
 
 ## Additional Resources
 
